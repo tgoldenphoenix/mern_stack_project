@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt')
 // @access Private
 const getAllUsers = asyncHandler(async (req, res) => {
     const users = await User.find().select('-password').lean()
-    if (!users) {
+    if (!users?.length) {
         return res.status(400).json({ message: 'No users found' })
     }
     res.json(users)
@@ -18,7 +18,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
 // @route POST /users
 // @access Private
 const createNewUser = asyncHandler(async (req, res) => {
-    const { username, password, roles } = res.body
+    const { username, password, roles } = req.body
 
     // Confirm data
     if(!username || !password || !Array.isArray(roles) || !roles.length) {
@@ -41,7 +41,7 @@ const createNewUser = asyncHandler(async (req, res) => {
     const user = await User.create(userObject)
 
     if (user) { // user created successfully
-        res.status(201).json({ message: `New user ${user} created`})
+        res.status(201).json({ message: `New user ${username} created`})
     } else {
         res.status(400).json({ message: 'Invalid user data received'})
     }
@@ -113,6 +113,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 
     const result = await user.deleteOne()
 
+    // Error: "Username undefined with ID undefined deleted"
     const reply = `Username ${result.username} with ID ${result._id} deleted`
 
     res.json(reply)
